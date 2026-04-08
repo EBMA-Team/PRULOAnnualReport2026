@@ -8,8 +8,8 @@ author:
 type: "website"
 number-sections: true
 number-depth: 3
-date: "2025-Apr-11"
-date-modified: "2025-Nov-06"
+date: "2026-Apr-07"
+date-modified: "2026-Apr-07"
 bibliography: MitekReport references.bib
 format: 
   html:
@@ -62,7 +62,7 @@ Mitek Products are used across all three cohorts. This report summarises the out
 
 The dataset is derived from the PRULO registry snapshot and live database tables. A [protocol](https://academic.oup.com/jsprm/article/2023/4/snad014/7317733) has been previously prepared for the registry @scholes2023.
 
-The outline of this report has been derived from the [EuroSpine Registry](https://drive.google.com/file/d/1ahcwmg50p87BR0AgJQXb740z2g7LUj-J/view?usp=sharing "Link to report example") report supplied as an example by Bruce Robie (Mitek, JnJ MedTech) (Sep 2023) and via summary of meeting minutes provided by Tracey Mealey in email correspondence (26-Jun-2023).
+The outline of this report has been derived from the [EuroSpine Registry](https://drive.google.com/file/d/1ahcwmg50p87BR0AgJQXb740z2g7LUj-J/view?usp=sharing "Link to report example") report supplied as an example by Bruce Robie (Mitek, JnJ MedTech) (Sep 2023) and via summary of meeting minutes provided by Tracey Mealey in email correspondence (26-Jun-2023). A variation of the report structure was added in April-2026 to align with Depuy-Mitek reporting requirements for continuous variables.
 
 # Glossary
 
@@ -340,7 +340,7 @@ SheetIDs <- list(
   PROMsMaster = "https://docs.google.com/spreadsheets/d/1zyFuf0Wmij13ELTYNmdi_BprF8hU4QSCPsNZ0EYRXzo/edit",
   TargetTerms = "https://docs.google.com/spreadsheets/d/1ESVvSKAv8ma11kri9pby6OEU9Gk5Z3UnF6XwjXBTcTg/edit",
   AuditResults = "https://docs.google.com/spreadsheets/d/1e7431oSrK9tItiSZb4wCWPI7nqGqawH8pNgnqgHPNkU/edit",
-  AuditReport = "https://docs.google.com/spreadsheets/d/1ESVvSKAv8ma11kri9pby6OEU9Gk5Z3UnF6XwjXBTcTg/edit"
+  AuditReport = "https://docs.google.com/spreadsheets/d/1Z79F9LrotbYTf5F7pPlqpMwV8yk1K-Upy3ty7cu06UY/edit"
   
 )
 
@@ -447,7 +447,7 @@ TargetTerms2 <- googlesheets4::range_read(
 gs4_auth(token = drive_token())
 
 # To get a snapshot from a specific folder (e.g., "20230415")
-specific_snapshot <- get_specific_snapshot("20250331")
+specific_snapshot <- get_specific_snapshot("20260331")
 
 
 ```
@@ -2745,7 +2745,6 @@ knitr::knit_print(TableRep1RC6)
 
 
 ```
-
 
 ```{r}
 #| label: tbl-PROMs-Rep1_b
