@@ -460,7 +460,7 @@ drive_download(
   overwrite = TRUE
 )
 
-SnapshotDate <- lubridate::ymd("20250331")
+SnapshotDate <- lubridate::ymd("20260331")
 
 # Correction to reset back to excel origin
 DaysDiff <- as.numeric(as.duration(interval(ymd("1899-12-30"), ymd("1970-01-01"))),"days")
@@ -504,8 +504,9 @@ SnapshotGHI <- openxlsx2::read_xlsx(
   ) |> dplyr::mutate(
     Cohort = "Glenohumeral Instability",
     across(starts_with("IC"),as.character)
+  ) |> rename(
+    CuffStatus = "RotatorCuffStatus"
   )
-
 
 STROBEInput <- openxlsx2::read_xlsx(
   temp_file1,
@@ -532,7 +533,9 @@ The dataset was filtered to only include records with a minimum of 3 months foll
 # Combine SnapshotRC, SnapshotGH, and SnapshotGen into a single table.
 # Remove 'ExternalStudyTag', 'Email', and 'Phone' columns.
 SnapshotComb <- SnapshotRC |> dplyr::select(-(c(ExternalStudyTag,Email,Phone))) |>
-  bind_rows(dplyr::select(SnapshotGHI, -(c(ExternalStudyTag,Email,Phone)))) |>  # Continue to combine tables by removing the specified columns. This time, combining 'SnapshotGen'.
+  bind_rows(dplyr::select(SnapshotGHI, -(c(ExternalStudyTag,Email,Phone))) |>
+      mutate(RepairAugmentation = as.character(RepairAugmentation))
+      ) |>  # Continue to combine tables by removing the specified columns. This time, combining 'SnapshotGen'.
   bind_rows(dplyr::select(SnapshotGen, -(c(ExternalStudyTag,Email,Phone,Followup,DurationStatusChange)))) |> 
   mutate(  # Create a new column 'PatientID' based on the TreatmentID column, using 'str_split_i' function with a pattern of '.'. This means splitting the string at the first occurrence of '.', and capturing the first part (using `1` argument).
         PatientID = str_split_i(TreatmentID,"\\.",1)
@@ -1458,11 +1461,11 @@ IntraopComp <- SnapshotComb4 |> dplyr::select(
   DateTreatment,
   SurgicalTreatment,
   TreatmentStatus,
-  ICCount:ICIntervention
+  ICCount:ICPostopManagement
 ) |> dplyr::filter(
   !is.na(ICCount)
 ) |> mutate(
-  ICNature2 = if_else(
+  ICNature4 = if_else(
     stringr::str_detect(ICNature,"explant"),
     "Hardware explantation",
     ICNature
@@ -2506,7 +2509,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep1RC$TreatmentID) |> 
     rename(
-      Description = "ICNature2",
+      Description = "ICNature4",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -2822,7 +2825,12 @@ tbl_summary(by = "Timepoint",
               WORCPhysicalQ3 ~ "continuous",
               WORCDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})") |> gtsummary::as_flex_table() |> 
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+        )
+      ) |> gtsummary::as_flex_table() |> 
   flextable::set_table_properties(
     width = 1, 
     layout = "autofit"
@@ -2890,7 +2898,12 @@ TableRep1BT1 <-
         RegistryStatus = "Open"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
         ),
       missing = "no"
     )|> add_stat_label(
@@ -3141,7 +3154,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep1BT$TreatmentID) |> 
     rename(
-      Description = "ICNature2",
+      Description = "",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -3192,7 +3205,11 @@ TableRep1BT4 <- SelectRep1BT |>
     # ),
     statistic = list(
       all_categorical() ~ "{p} ({n})"
-      #all_continuous() ~ "{mean} ({sd})"
+      # all_continuous2() ~ c(
+      #   "{mean} ({sd})",
+      #   "{median} ({p25}, {p75})",
+      #   "{min} – {max}"
+      # )
     ),
     missing = "no",) |> add_ci(
       statistic = list(
@@ -3358,7 +3375,11 @@ tbl_summary(by = "Timepoint",
               QDASH ~ "continuous",
               QDASHDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             ) 
 
 gtsummary::as_flex_table(TableRep1BT5) |> flextable::set_table_properties(
@@ -3387,7 +3408,11 @@ tbl_summary(by = "Timepoint",
               WORCNorm ~ "continuous",
               WORCPhysicalQ3 ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             )
 
 gtsummary::as_flex_table(TableRep1BT6) |> flextable::set_table_properties(
@@ -3612,7 +3637,12 @@ TableRep2RC1 <-
         RegistryStatus = "Open"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
         ),
       missing = "no"
     ) |> add_stat_label(
@@ -3679,7 +3709,12 @@ TableRep2RC2 <-
         AdjunctProcedure ~ "Adjunct Procedure"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
         ),
       missing = "no"
     ) |> add_overall() |> modify_table_styling(
@@ -3866,7 +3901,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep2RC$TreatmentID) |> 
     rename(
-      Description = "ICNature2",
+      Description = "ICNature4",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -3917,7 +3952,11 @@ TableRep2RC4 <- SelectRep2RC |>
     ),
     statistic = list(
       all_categorical() ~ "{p} ({n})",
-      all_continuous() ~ "{mean} ({sd})"
+      all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
     ),
     missing = "no",) |> add_ci(
       statistic = list(
@@ -4101,7 +4140,11 @@ tbl_summary(by = "Timepoint",
               QDASH ~ "continuous",
               QDASHDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             ) 
 
 gtsummary::as_flex_table(TableRep2RC5) |> flextable::set_table_properties(
@@ -4132,7 +4175,12 @@ tbl_summary(by = "Timepoint",
               WORCPhysicalQ3 ~ "continuous",
               WORCDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})") 
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
+)
 
 gtsummary::as_flex_table(TableRep2RC6) |> flextable::set_table_properties(
   layout = "autofit",
@@ -4202,7 +4250,12 @@ TableRep2BT1 <-
         RegistryStatus = "Open"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
         ),
       missing = "no"
     )|> add_stat_label(
@@ -4433,7 +4486,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep2BT$TreatmentID) |> 
     rename(
-      Description = "ICNature2",
+      Description = "ICNature4",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -4650,7 +4703,11 @@ tbl_summary(by = "Timepoint",
               QDASH ~ "continuous",
               QDASHDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             ) 
 
 gtsummary::as_flex_table(TableRep2BT5) |> flextable::set_table_properties(
@@ -4679,7 +4736,11 @@ tbl_summary(by = "Timepoint",
               WORCNorm ~ "continuous",
               WORCPhysicalQ3 ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             )
 
 gtsummary::as_flex_table(TableRep2BT6) |> flextable::set_table_properties(
@@ -4899,7 +4960,12 @@ TableRep3RC1 <-
         RegistryStatus = "Open"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
         ),
       missing = "no"
     ) |> add_stat_label(
@@ -5140,7 +5206,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep3RC$TreatmentID) |> 
     rename(
-      Description = "ICNature2",
+      Description = "",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -5379,7 +5445,11 @@ tbl_summary(by = "Timepoint",
               QDASH ~ "continuous",
               QDASHDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             )
 
 
@@ -5409,7 +5479,12 @@ tbl_summary(by = "Timepoint",
               WORCPhysicalQ3  ~ "continuous",
               WORCDelta  ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})")
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
+            )
   
 gtsummary::as_flex_table(TableRep3RC6) |> flextable::set_table_properties(
   layout = "autofit",
@@ -5478,7 +5553,12 @@ TableRep3BT1 <-
         RegistryStatus = "Open"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
         ),
       missing = "no"
     )|> add_stat_label(
@@ -5702,7 +5782,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep3BT$TreatmentID) |> 
     rename(
-      Description = "ICNature2",
+      Description = "",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -5920,7 +6000,11 @@ tbl_summary(by = "Timepoint",
               QDASH ~ "continuous",
               QDASHDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             )
 
 gtsummary::as_flex_table(TableRep3BT5) |> flextable::set_table_properties(
@@ -5950,7 +6034,11 @@ tbl_summary(by = "Timepoint",
               WORCNorm ~ "continuous",
               WORCPhysicalQ3 ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             )
 
 gtsummary::as_flex_table(TableRep3BT6) |> flextable::set_table_properties(
@@ -6168,7 +6256,12 @@ TableRep4RC1 <-
         RegistryStatus = "Open"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
         ),
       missing = "no"
     ) |> add_stat_label(
@@ -6408,7 +6501,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep4RC$TreatmentID) |> 
     rename(
-      Description = "ICNature2",
+      Description = "",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -6471,7 +6564,11 @@ TableRep4RC4 <- SelectRep4RC |>
     # ),
     statistic = list(
       all_categorical() ~ "{p} ({n})",
-      all_continuous() ~ "{mean} ({sd})"
+      all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
     ),
     missing = "no",) |> add_ci(
       statistic = list(
@@ -6642,7 +6739,11 @@ tbl_summary(by = "Timepoint",
               QDASH ~ "continuous",
               QDASHDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             ) 
 
 gtsummary::as_flex_table(TableRep4RC5) |> flextable::set_table_properties(
@@ -6670,7 +6771,12 @@ tbl_summary(by = "Timepoint",
               WORCPhysicalQ3 ~ "continuous",
               WORCDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})") 
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
+            ) 
 
 gtsummary::as_flex_table(TableRep4RC6) |> flextable::set_table_properties(
   layout = "autofit",
@@ -6739,7 +6845,12 @@ TableRep4BT1 <-
         RegistryStatus = "Open"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
         ),
       missing = "no"
     )|> add_stat_label(
@@ -6966,7 +7077,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep4BT$TreatmentID) |> 
     rename(
-      Description = "ICNature2",
+      Description = "",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -7676,7 +7787,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep5RC$TreatmentID) |> 
     rename(
-      Description = "ICNature2",
+      Description = "",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -8243,7 +8354,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep5BT$TreatmentID) |> 
     rename(
-      Description = "ICNature2",
+      Description = "",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -8925,7 +9036,7 @@ if (has_complications == 0) {
   IntraopComp |> dplyr::filter(
     TreatmentID %in% SelectRep6$TreatmentID
   ) |> rename(
-    Description = "ICNature2",
+    Description = "ICNature4",
     Intervention = "ICIntervention",
     PostopManagement = "ICPostopManagement"
   ) |> select(
@@ -9457,7 +9568,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep6BR$TreatmentID) |> 
     rename(
-      Description = "ICNature2",
+      Description = "ICNature4",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -9717,8 +9828,11 @@ SelectRep7 <- SnapshotComb4 |>
       starts_with("Product"),
       ~str_detect(str_to_lower(.), Pattern7),
       .names = "{.col}Check"
-    )
-  ) |> mutate(
+    ),
+    RepairAugmentation = dplyr::case_when(
+    is.na(RepairAugmentation) ~ "None",
+    .default = as.character(RepairAugmentation)
+    ),
     Product1Count = case_when(
       Product1Check == TRUE ~ stringr::str_extract(Product1,"\\d"),
       .default = NA
@@ -9757,7 +9871,6 @@ SelectRep7 <- SnapshotComb4 |>
   Effusion = TreatmentID %in% ComplicEffusion$TreatmentID,
   Pain = TreatmentID %in% ComplicPain$TreatmentID,
   Other = TreatmentID %in% ComplicOther$TreatmentID,
-
   Reop = TreatmentID %in% ComplicReop$TreatmentID
 ) |> left_join(
   ComplicTable3 |> group_by(TreatmentID) |> slice_max(`Reoperation Procedure Date`, n = 1) |> ungroup() |> dplyr::select(
@@ -10109,7 +10222,7 @@ if (has_complications == 0) {
   IntraopComp |> dplyr::filter(
     TreatmentID %in% SelectRep7$TreatmentID
   ) |> rename(
-    Description = "ICNature2",
+    Description = "ICNature4",
     Intervention = "ICIntervention",
     PostopManagement = "ICPostopManagement"
   ) |> select(
@@ -10644,7 +10757,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep7BR$TreatmentID) |> 
     rename(
-      Description = "ICNature2",
+      Description = "ICNature4",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -11203,7 +11316,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep9$TreatmentID) |> 
     rename(
-      Description = "ICNature2",
+      Description = "ICNature4",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -11811,7 +11924,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep10$TreatmentID) |> 
     rename(
-      Description = "ICNature2",
+      Description = "ICNature4",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -12516,7 +12629,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep11RC$TreatmentID) |> 
     rename(
-      Description = "ICNature2",
+      Description = "ICNature4",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
