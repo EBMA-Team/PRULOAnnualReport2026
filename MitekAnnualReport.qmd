@@ -9,7 +9,7 @@ type: "website"
 number-sections: true
 number-depth: 3
 date: "2026-Apr-07"
-date-modified: "2026-Apr-07"
+date-modified: "2026-Apr-16"
 bibliography: MitekReport references.bib
 format: 
   html:
@@ -7297,7 +7297,11 @@ tbl_summary(by = "Timepoint",
               QDASH ~ "continuous",
               QDASHDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             ) 
 
 gtsummary::as_flex_table(TableRep4BT5) |> flextable::set_table_properties(
@@ -7326,7 +7330,11 @@ tbl_summary(by = "Timepoint",
               WORCNorm ~ "continuous",
               WORCPhysicalQ3 ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             )
 
 gtsummary::as_flex_table(TableRep4BT6) |> flextable::set_table_properties(
@@ -7546,7 +7554,12 @@ TableRep5RC1 <-
         RegistryStatus = "Open"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
         ),
       missing = "no"
     ) |> add_stat_label(
@@ -7850,13 +7863,11 @@ TableRep5RC4 <- SelectRep5RC |>
     #   ReopDelay_Surgery ~ "continuous"
     # ),
     statistic = list(
-      all_categorical() ~ "{p} ({n})",
-      all_continuous() ~ "{mean} ({sd})"
+      all_categorical() ~ "{p} ({n})"
     ),
     missing = "no",) |> add_ci(
       statistic = list(
-        all_categorical() ~ "{conf.low} - {conf.high}",
-        all_continuous() ~ "{conf.low} - {conf.high}"
+        all_categorical() ~ "{conf.low} - {conf.high}"
         
       )
     ) |> modify_table_styling(
@@ -8025,7 +8036,11 @@ tbl_summary(by = "Timepoint",
               QDASH ~ "continuous",
               QDASHDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             ) 
 
 gtsummary::as_flex_table(TableRep5RC5) |> flextable::set_table_properties(
@@ -8057,7 +8072,12 @@ dplyr::select(
       WORCPhysicalQ3 ~ "continuous",
       WORCDelta ~ "continuous"
             ),
-    statistic = all_continuous() ~ "{median} ({p25} - {p75})") 
+    statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
+  )
 
 gtsummary::as_flex_table(TableRep5RC6) |> flextable::set_table_properties(
   layout = "autofit",
@@ -8126,7 +8146,12 @@ TableRep5BT1 <-
         RegistryStatus = "Open"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
         ),
       missing = "no"
     ) |> add_stat_label(
@@ -8574,7 +8599,11 @@ tbl_summary(by = "Timepoint",
               QDASH ~ "continuous",
               QDASHDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             ) 
 
 gtsummary::as_flex_table(TableRep5BT5) |> flextable::set_table_properties(
@@ -8594,16 +8623,20 @@ TableRep5BT6 <- SelectRep5BTPROM2 |>
 dplyr::select(
   WORCNorm,
   WORCPhysicalQ3,
-  #WORCDelta, #Insufficient data points
+  WORCDelta, #Insufficient data points
   Timepoint) |>
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
               WORCNorm ~ "continuous",
               WORCPhysicalQ3 ~ "continuous"
-              #WORCDelta ~ "continuous"
+              WORCDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             )
 
 gtsummary::as_flex_table(TableRep5BT6) |> flextable::set_table_properties(
@@ -8825,7 +8858,12 @@ TableRep61 <-
         RegistryStatus = "Open"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
         ),
       missing = "no"
     ) |> add_stat_label(
@@ -9266,7 +9304,11 @@ tbl_summary(by = "Timepoint",
               WOSINorm ~ "continuous",
               WOSIDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             )
 
 gtsummary::as_flex_table(TableRep65) |> flextable::set_table_properties(
@@ -9338,7 +9380,12 @@ TableRep6BR1 <-
         RegistryStatus = "Open"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
         ),
       missing = "no"
     ) |> add_stat_label(
@@ -9630,7 +9677,11 @@ TableRep6BR4 <- SelectRep6BR |>
     ),
     statistic = list(
       all_categorical() ~ "{p} ({n})",
-      all_continuous() ~ "{mean} ({sd})"
+      all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
     ),
     missing = "no",
     digits = list(
@@ -9779,7 +9830,11 @@ tbl_summary(by = "Timepoint",
               WOSINorm ~ "continuous"
               #WOSIDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             ) 
 
 gtsummary::as_flex_table(TableRep6BR5) |> flextable::set_table_properties(
@@ -10005,7 +10060,12 @@ TableRep71 <-
         RegistryStatus = "Open"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
         ),
       missing = "no"
     ) |> add_stat_label(
@@ -10457,7 +10517,11 @@ tbl_summary(by = "Timepoint",
               WOSINorm ~ "continuous",
               WOSIDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             ) 
 
 gtsummary::as_flex_table(TableRep75) |> flextable::set_table_properties(
@@ -10527,7 +10591,12 @@ TableRep7BR1 <-
         RegistryStatus = "Open"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
         ),
       missing = "no"
     ) |> add_stat_label(
@@ -10821,7 +10890,11 @@ TableRep7BR4 <- SelectRep7BR |>
     ),
     statistic = list(
       all_categorical() ~ "{p} ({n})",
-      all_continuous() ~ "{mean} ({sd})"
+      all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
     ),
     missing = "no",
     digits = list(
@@ -10957,19 +11030,23 @@ Rep7PROM1 / Rep7PROM2
 TableRep7BR5 <- SelectRep7BRPROM1 |>
 dplyr::select(
   QDASH,
-  #QDASHDelta,
+  QDASHDelta,
   WOSINorm,
-  #WOSIDelta,
+  WOSIDelta,
   Timepoint) |>
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
               QDASH ~ "continuous",
-              #QDASHDelta ~ "continuous",
+              QDASHDelta ~ "continuous",
               WOSINorm ~ "continuous"
-              #WOSIDelta ~ "continuous"
+              WOSIDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             ) 
 
 gtsummary::as_flex_table(TableRep7BR5) |> flextable::set_table_properties(
@@ -11684,7 +11761,12 @@ TableRep101 <-
         RegistryStatus = "Open"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
         ),
       missing = "no",
       digits = all_continuous() ~ 1
@@ -12159,11 +12241,15 @@ tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
               QDASH ~ "continuous",
-              #QDASHDelta ~ "continuous",
+              QDASHDelta ~ "continuous",
               WOSINorm ~ "continuous",
               WOSIDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             ) 
 
 gtsummary::as_flex_table(TableRep105) |> flextable::set_table_properties(
@@ -12392,7 +12478,12 @@ TableRep11RC1 <-
         RegistryStatus = "Open"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
         ),
       missing = "no"
     ) |> add_stat_label(
@@ -12692,13 +12783,11 @@ TableRep11RC4 <- SelectRep11RC |>
     #   ReopDelay_Surgery ~ "continuous"
     # ),
     statistic = list(
-      all_categorical() ~ "{p} ({n})",
-      all_continuous() ~ "{mean} ({sd})"
+      all_categorical() ~ "{p} ({n})"
     ),
     missing = "no",) |> add_ci(
       statistic = list(
-        all_categorical() ~ "{conf.low} - {conf.high}",
-        all_continuous() ~ "{conf.low} - {conf.high}"
+        all_categorical() ~ "{conf.low} - {conf.high}"
         
       )
     ) |> modify_table_styling(
@@ -12867,7 +12956,11 @@ tbl_summary(by = "Timepoint",
               QDASH ~ "continuous"
               #QDASHDelta ~ "continuous"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             )
   
   
