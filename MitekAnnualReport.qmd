@@ -1417,12 +1417,14 @@ SnapshotPROM1 <- SnapshotPROM |>
     ),
     names_to = c(".value", "Timepoint"),
     names_pattern = "(.+)(Preop|3m|6m|12m)",
-    values_to = c("QDASH", "QDASHDelta", "WOSINorm", "WOSIDelta", "Eligible")
+    values_to = c("QDASH", "DeltaQ", "WOSINorm", "WOSIDelta", "Eligible")
   ) |>
   mutate(Timepoint = forcats::fct(
     Timepoint, 
     levels = c("Preop", "3m", "6m", "12m"))
-    ) |> dplyr::filter(!is.na(Eligible))
+    ) |> dplyr::filter(!is.na(Eligible)) |> rename(
+      QDASHDelta = "DeltaQ"
+    )
 
 ```
 
@@ -3467,6 +3469,7 @@ SelectRep2 <- SnapshotComb4 |>
   dplyr::filter(
     str_detect(ImplantCodes,paste(RefCode2$Reference,collapse = "|"))
   ) |> mutate(
+    Postcode = as.character(Postcode),
     Product1Check = stringr::str_detect(stringr::str_to_lower(Product1),Pattern2),
     Product2Check = stringr::str_detect(stringr::str_to_lower(Product2),Pattern2),
     Product3Check = stringr::str_detect(stringr::str_to_lower(Product3),Pattern2),
@@ -11056,7 +11059,7 @@ tbl_summary(by = "Timepoint",
             type = list(
               QDASH ~ "continuous2",
               QDASHDelta ~ "continuous2",
-              WOSINorm ~ "continuous2"
+              WOSINorm ~ "continuous2",
               WOSIDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
