@@ -465,6 +465,7 @@ SnapshotDate <- lubridate::ymd("20260331")
 # Correction to reset back to excel origin
 DaysDiff <- as.numeric(as.duration(interval(ymd("1899-12-30"), ymd("1970-01-01"))),"days")
 
+
 SnapshotGen <- openxlsx2::read_xlsx(
   temp_file1,
   sheet = "ShoulderGeneral",
@@ -680,7 +681,7 @@ TargetTermsNew    <- ProcedureMaster |>
 # Commented out code: This is a call to the googlesheets4 package to write the TargetTerms dataframe to a Google Sheets spreadsheet
 
 #googlesheets4::range_write(
-#  ss = "https://docs.google.com/spreadsheets/d/1ESVvSKAv8ma11kri9pby6OEU9Gk5Z3UnF6XwjXBTcTg/edit", 
+#  ss = "https://docs.google.com/spreadsheets/d/1Z79F9LrotbYTf5F7pPlqpMwV8yk1K-Upy3ty7cu06UY/edit", 
 #  data = TargetTerms |> dplyr::select(TreatmentID, Procedures3), 
 #  sheet = "Procedures", 
 #  range = paste0("A1:", "B", nrow(TargetTerms) + 1),
@@ -1324,15 +1325,18 @@ SnapshotPROM <- SnapshotComb4 |>
     tidyselect::ends_with("24months")
     )
     ) |>
-  relocate((all_of(c("QDASHPreop",
-                        "QDASH3months",
-                        "QDASH6months",
-                        "QDASH12months",
-                        "EligiblePreop",
-                        "Eligible3months",
-                        "Eligible6months",
-                        "Eligible12months"))), .after = last_col(),
-           ) |>
+  relocate((all_of(c(
+    "QDASHPreop",
+    "QDASH3months",
+    "QDASH6months",
+    "QDASH12months",
+    "EligiblePreop",
+    "Eligible3months",
+    "Eligible6months",
+    "Eligible12months"))
+    ), 
+    .after = last_col()
+    ) |>
 mutate(
   Eligible3months = case_when(
     Eligible3months != "Yes" ~ NA_character_,
@@ -1418,9 +1422,7 @@ SnapshotPROM1 <- SnapshotPROM |>
   mutate(Timepoint = forcats::fct(
     Timepoint, 
     levels = c("Preop", "3m", "6m", "12m"))
-    ) |> dplyr::filter(!is.na(Eligible)) |> rename(
-      QDASHDelta = "DeltaQ"
-    )
+    ) |> dplyr::filter(!is.na(Eligible))
 
 ```
 
@@ -1437,7 +1439,7 @@ SnapshotPROM2 <- SnapshotPROM |>
     ),
     names_to = c(".value", "Timepoint"),
     names_pattern = "(.+)(Preop|6m|12m)",
-    values_to = c("WORCNorm","WORCDelta","WOSIPhysicalQ3", "Eligible")
+    values_to = c("WORCNorm","WORCDelta","WORCPhysicalQ3", "Eligible")
   ) |>
   mutate(Timepoint = forcats::fct(
     Timepoint, 
@@ -2248,8 +2250,8 @@ TableRep1RC1 <- SelectRep1RC |> mutate(
         RegistryStatus ~ "Patient Record Active"
       ),
       type = list(
-        AgeAtInitialExam ~ "continuous",
-        SymptomDuration ~ "continuous",
+        AgeAtInitialExam ~ "continuous2",
+        SymptomDuration ~ "continuous2",
         Sex ~ "dichotomous",
         TreatmentStatus ~ "dichotomous",
         RegistryStatus ~ "dichotomous"
@@ -2261,7 +2263,13 @@ TableRep1RC1 <- SelectRep1RC |> mutate(
         RegistryStatus = "Open"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})"
+        all_categorical() ~ "{p} ({n})",
+        all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
+        
         ),
       missing = "no"
     ) |> add_stat_label(
@@ -2549,24 +2557,25 @@ TableRep1RC5 <- SelectRep1RC |>
     label = list(
       Ligament_Tendon ~ "Ligament|Tendon (Retear)",
       ReopDelay_Surgery ~ "Reoperation Delay (Weeks)",
-      
       Reop ~ "Reoperation",
       SubsequentTx2 ~ "Subsequent Treatment"
       ),
     type = list(
-      ReopDelay_Surgery ~ "continuous"
+      ReopDelay_Surgery ~ "continuous2"
     ),
     statistic = list(
       all_categorical() ~ "{p} ({n})",
-      all_continuous() ~ "{mean} ({sd})"
+      all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
     ),
     missing = "no",) |> add_ci(
       statistic = list(
-        all_categorical() ~ "{conf.low} - {conf.high}",
-        all_continuous() ~ "{conf.low} - {conf.high}"
-        
+        all_categorical() ~ "{conf.low} - {conf.high}"
       )
-    ) |> modify_table_styling(
+      ) |> modify_table_styling(
       columns = label,
       rows = label == "Other",
       footnote = "Myocardial Infarction"
@@ -2731,10 +2740,14 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              QDASH ~ "continuous",
-              QDASHDelta ~ "continuous"
+              QDASH ~ "continuous2",
+              QDASHDelta ~ "continuous2"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})"
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
             ) |> gtsummary::as_flex_table() |> 
   flextable::set_table_properties(
     width = 1, 
@@ -2821,9 +2834,9 @@ dplyr::select(WORCNorm,
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              WORCNorm ~ "continuous",
-              WORCPhysicalQ3 ~ "continuous",
-              WORCDelta ~ "continuous"
+              WORCNorm ~ "continuous2",
+              WORCPhysicalQ3 ~ "continuous2",
+              WORCDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -2885,8 +2898,8 @@ TableRep1BT1 <-
         RegistryStatus ~ "Patient Record Active"
       ),
       type = list(
-        AgeAtInitialExam ~ "continuous",
-        SymptomDuration ~ "continuous",
+        AgeAtInitialExam ~ "continuous2",
+        SymptomDuration ~ "continuous2",
         Sex ~ "dichotomous",
         TreatmentStatus ~ "dichotomous",
         RegistryStatus ~ "dichotomous"
@@ -3372,8 +3385,8 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              QDASH ~ "continuous",
-              QDASHDelta ~ "continuous"
+              QDASH ~ "continuous2",
+              QDASHDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -3405,8 +3418,8 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              WORCNorm ~ "continuous",
-              WORCPhysicalQ3 ~ "continuous"
+              WORCNorm ~ "continuous2",
+              WORCPhysicalQ3 ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -3624,8 +3637,8 @@ TableRep2RC1 <-
         RegistryStatus ~ "Patient Record Active"
       ),
       type = list(
-        AgeAtInitialExam ~ "continuous",
-        SymptomDuration ~ "continuous",
+        AgeAtInitialExam ~ "continuous2",
+        SymptomDuration ~ "continuous2",
         Sex ~ "dichotomous",
         TreatmentStatus ~ "dichotomous",
         RegistryStatus ~ "dichotomous"
@@ -3709,12 +3722,7 @@ TableRep2RC2 <-
         AdjunctProcedure ~ "Adjunct Procedure"
       ),
       statistic = list(
-        all_categorical() ~ "{p} ({n})",
-        all_continuous2() ~ c(
-        "{mean} ({sd})",
-        "{median} ({p25}, {p75})",
-        "{min} – {max}"
-      )
+        all_categorical() ~ "{p} ({n})"
         ),
       missing = "no"
     ) |> add_overall() |> modify_table_styling(
@@ -3948,7 +3956,7 @@ TableRep2RC4 <- SelectRep2RC |>
       SubsequentTx2 ~ "Subsequent Treatment"
       ),
     type = list(
-      ReopDelay_Surgery ~ "continuous"
+      ReopDelay_Surgery ~ "continuous2"
     ),
     statistic = list(
       all_categorical() ~ "{p} ({n})",
@@ -4137,8 +4145,8 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              QDASH ~ "continuous",
-              QDASHDelta ~ "continuous"
+              QDASH ~ "continuous2",
+              QDASHDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -4171,9 +4179,9 @@ dplyr::select(WORCNorm,
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              WORCNorm ~ "continuous",
-              WORCPhysicalQ3 ~ "continuous",
-              WORCDelta ~ "continuous"
+              WORCNorm ~ "continuous2",
+              WORCPhysicalQ3 ~ "continuous2",
+              WORCDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -4237,7 +4245,7 @@ TableRep2BT1 <-
         RegistryStatus ~ "Patient Record Active"
       ),
       type = list(
-        AgeAtInitialExam ~ "continuous",
+        AgeAtInitialExam ~ "continuous2",
         #SymptomDuration ~ "continuous",
         Sex ~ "dichotomous",
         TreatmentStatus ~ "dichotomous",
@@ -4700,8 +4708,8 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              QDASH ~ "continuous",
-              QDASHDelta ~ "continuous"
+              QDASH ~ "continuous2",
+              QDASHDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -4733,8 +4741,8 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              WORCNorm ~ "continuous",
-              WORCPhysicalQ3 ~ "continuous"
+              WORCNorm ~ "continuous2",
+              WORCPhysicalQ3 ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -4947,8 +4955,8 @@ TableRep3RC1 <-
         RegistryStatus ~ "Patient Record Active"
       ),
       type = list(
-        AgeAtInitialExam ~ "continuous",
-        SymptomDuration ~ "continuous",
+        AgeAtInitialExam ~ "continuous2",
+        SymptomDuration ~ "continuous2",
         Sex ~ "dichotomous",
         TreatmentStatus ~ "dichotomous",
         RegistryStatus ~ "dichotomous"
@@ -5270,8 +5278,7 @@ TableRep3RC4 <- SelectRep3RC |>
     #   ReopDelay_Surgery ~ "continuous"
     # ),
     statistic = list(
-      all_categorical() ~ "{p} ({n})",
-      all_continuous() ~ "{mean} ({sd})"
+      all_categorical() ~ "{p} ({n})"
     ),
     missing = "no"
     ) |> add_ci(
@@ -5442,8 +5449,8 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              QDASH ~ "continuous",
-              QDASHDelta ~ "continuous"
+              QDASH ~ "continuous2",
+              QDASHDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -5475,9 +5482,9 @@ dplyr::select(WORCNorm,
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              WORCNorm  ~ "continuous",
-              WORCPhysicalQ3  ~ "continuous",
-              WORCDelta  ~ "continuous"
+              WORCNorm  ~ "continuous2",
+              WORCPhysicalQ3  ~ "continuous2",
+              WORCDelta  ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -5540,7 +5547,7 @@ TableRep3BT1 <-
         RegistryStatus ~ "Patient Record Active"
       ),
       type = list(
-        AgeAtInitialExam ~ "continuous",
+        AgeAtInitialExam ~ "continuous2",
         #SymptomDuration ~ "continuous",
         Sex ~ "dichotomous",
         TreatmentStatus ~ "dichotomous",
@@ -5997,8 +6004,8 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              QDASH ~ "continuous",
-              QDASHDelta ~ "continuous"
+              QDASH ~ "continuous2",
+              QDASHDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -6031,8 +6038,8 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              WORCNorm ~ "continuous",
-              WORCPhysicalQ3 ~ "continuous"
+              WORCNorm ~ "continuous2",
+              WORCPhysicalQ3 ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -6243,8 +6250,8 @@ TableRep4RC1 <-
         RegistryStatus ~ "Patient Record Active"
       ),
       type = list(
-        AgeAtInitialExam ~ "continuous",
-        SymptomDuration ~ "continuous",
+        AgeAtInitialExam ~ "continuous2",
+        SymptomDuration ~ "continuous2",
         Sex ~ "dichotomous",
         TreatmentStatus ~ "dichotomous",
         RegistryStatus ~ "dichotomous"
@@ -6736,8 +6743,8 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              QDASH ~ "continuous",
-              QDASHDelta ~ "continuous"
+              QDASH ~ "continuous2",
+              QDASHDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -6767,9 +6774,9 @@ dplyr::select(WORCNorm,
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              WORCNorm ~ "continuous",
-              WORCPhysicalQ3 ~ "continuous",
-              WORCDelta ~ "continuous"
+              WORCNorm ~ "continuous2",
+              WORCPhysicalQ3 ~ "continuous2",
+              WORCDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -6832,7 +6839,7 @@ TableRep4BT1 <-
         RegistryStatus ~ "Patient Record Active"
       ),
       type = list(
-        AgeAtInitialExam ~ "continuous",
+        AgeAtInitialExam ~ "continuous2",
         #SymptomDuration ~ "continuous",
         Sex ~ "dichotomous",
         TreatmentStatus ~ "dichotomous",
@@ -7294,8 +7301,8 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              QDASH ~ "continuous",
-              QDASHDelta ~ "continuous"
+              QDASH ~ "continuous2",
+              QDASHDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -7327,8 +7334,8 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              WORCNorm ~ "continuous",
-              WORCPhysicalQ3 ~ "continuous"
+              WORCNorm ~ "continuous2",
+              WORCPhysicalQ3 ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -7541,8 +7548,8 @@ TableRep5RC1 <-
         RegistryStatus ~ "Patient Record Active"
       ),
       type = list(
-        AgeAtInitialExam ~ "continuous",
-        SymptomDuration ~ "continuous",
+        AgeAtInitialExam ~ "continuous2",
+        SymptomDuration ~ "continuous2",
         Sex ~ "dichotomous",
         TreatmentStatus ~ "dichotomous",
         RegistryStatus ~ "dichotomous"
@@ -8033,8 +8040,8 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              QDASH ~ "continuous",
-              QDASHDelta ~ "continuous"
+              QDASH ~ "continuous2",
+              QDASHDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -8068,9 +8075,9 @@ dplyr::select(
     by = "Timepoint",
     missing = "no",
     type = list(
-      WORCNorm ~ "continuous",
-      WORCPhysicalQ3 ~ "continuous",
-      WORCDelta ~ "continuous"
+      WORCNorm ~ "continuous2",
+      WORCPhysicalQ3 ~ "continuous2",
+      WORCDelta ~ "continuous2"
             ),
     statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -8133,7 +8140,7 @@ TableRep5BT1 <-
         RegistryStatus ~ "Patient Record Active"
       ),
       type = list(
-        AgeAtInitialExam ~ "continuous",
+        AgeAtInitialExam ~ "continuous2",
         #SymptomDuration ~ "continuous",
         Sex ~ "dichotomous",
         TreatmentStatus ~ "dichotomous",
@@ -8596,8 +8603,8 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              QDASH ~ "continuous",
-              QDASHDelta ~ "continuous"
+              QDASH ~ "continuous2",
+              QDASHDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -8628,9 +8635,9 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              WORCNorm ~ "continuous",
-              WORCPhysicalQ3 ~ "continuous"
-              WORCDelta ~ "continuous"
+              WORCNorm ~ "continuous2",
+              WORCPhysicalQ3 ~ "continuous2",
+              WORCDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -8845,8 +8852,8 @@ TableRep61 <-
         RegistryStatus ~ "Patient Record Active"
       ),
       type = list(
-        AgeAtInitialExam ~ "continuous",
-        SymptomDuration ~ "continuous",
+        AgeAtInitialExam ~ "continuous2",
+        SymptomDuration ~ "continuous2",
         Sex ~ "dichotomous",
         TreatmentStatus ~ "dichotomous",
         RegistryStatus ~ "dichotomous"
@@ -9130,11 +9137,15 @@ TableRep64 <- SelectRep6 |>
       SubsequentTx2 ~ "Subsequent Treatment"
       ),
     type = list(
-      ReopDelay_Surgery ~ "continuous"
+      ReopDelay_Surgery ~ "continuous2"
     ),
     statistic = list(
       all_categorical() ~ "{p} ({n})",
-      all_continuous() ~ "{mean} ({sd})"
+      all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
     ),
     missing = "no",
     digits = list(
@@ -9299,10 +9310,10 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              QDASH ~ "continuous",
-              QDASHDelta ~ "continuous",
-              WOSINorm ~ "continuous",
-              WOSIDelta ~ "continuous"
+              QDASH ~ "continuous2",
+              QDASHDelta ~ "continuous2",
+              WOSINorm ~ "continuous2",
+              WOSIDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -9367,8 +9378,8 @@ TableRep6BR1 <-
         RegistryStatus ~ "Patient Record Active"
       ),
       type = list(
-        AgeAtInitialExam ~ "continuous",
-        SymptomDuration ~ "continuous",
+        AgeAtInitialExam ~ "continuous2",
+        SymptomDuration ~ "continuous2",
         Sex ~ "dichotomous",
         TreatmentStatus ~ "dichotomous",
         RegistryStatus ~ "dichotomous"
@@ -9673,7 +9684,7 @@ TableRep6BR4 <- SelectRep6BR |>
       SubsequentTx2 ~ "Subsequent Treatment"
       ),
     type = list(
-      ReopDelay_Surgery ~ "continuous"
+      ReopDelay_Surgery ~ "continuous2"
     ),
     statistic = list(
       all_categorical() ~ "{p} ({n})",
@@ -9825,9 +9836,9 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              QDASH ~ "continuous",
+              QDASH ~ "continuous2",
               #QDASHDelta ~ "continuous",
-              WOSINorm ~ "continuous"
+              WOSINorm ~ "continuous2"
               #WOSIDelta ~ "continuous"
             ),
             statistic = all_continuous2() ~ c(
@@ -10047,8 +10058,8 @@ TableRep71 <-
         RegistryStatus ~ "Patient Record Active"
       ),
       type = list(
-        AgeAtInitialExam ~ "continuous",
-        SymptomDuration ~ "continuous",
+        AgeAtInitialExam ~ "continuous2",
+        SymptomDuration ~ "continuous2",
         Sex ~ "dichotomous",
         TreatmentStatus ~ "dichotomous",
         RegistryStatus ~ "dichotomous"
@@ -10338,11 +10349,15 @@ TableRep74 <- SelectRep7 |>
       SubsequentTx2 ~ "Subsequent Treatment"
       ),
     type = list(
-      ReopDelay_Surgery ~ "continuous"
+      ReopDelay_Surgery ~ "continuous2"
     ),
     statistic = list(
       all_categorical() ~ "{p} ({n})",
-      all_continuous() ~ "{mean} ({sd})"
+      all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
     ),
     missing = "no",
     digits = list(
@@ -10512,10 +10527,10 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              QDASH ~ "continuous",
-              QDASHDelta ~ "continuous",
-              WOSINorm ~ "continuous",
-              WOSIDelta ~ "continuous"
+              QDASH ~ "continuous2",
+              QDASHDelta ~ "continuous2",
+              WOSINorm ~ "continuous2",
+              WOSIDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -10580,6 +10595,8 @@ TableRep7BR1 <-
         RegistryStatus ~ "Patient Record Active"
       ),
       type = list(
+        AgeAtInitialExam ~ "continuous2",
+        SymptomDuration ~ "continuous2",
         Sex ~ "dichotomous",
         TreatmentStatus ~ "dichotomous",
         RegistryStatus ~ "dichotomous"
@@ -10886,7 +10903,7 @@ TableRep7BR4 <- SelectRep7BR |>
       SubsequentTx2 ~ "Subsequent Treatment"
       ),
     type = list(
-      ReopDelay_Surgery ~ "continuous"
+      ReopDelay_Surgery ~ "continuous2"
     ),
     statistic = list(
       all_categorical() ~ "{p} ({n})",
@@ -11037,10 +11054,10 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              QDASH ~ "continuous",
-              QDASHDelta ~ "continuous",
-              WOSINorm ~ "continuous"
-              WOSIDelta ~ "continuous"
+              QDASH ~ "continuous2",
+              QDASHDelta ~ "continuous2",
+              WOSINorm ~ "continuous2"
+              WOSIDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -11444,13 +11461,11 @@ TableRep_PC9 <- SelectRep9 |>
     #   ReopDelay_Surgery ~ "continuous"
     # ),
     statistic = list(
-      all_categorical() ~ "{p} ({n})",
-      all_continuous() ~ "{mean} ({sd})"
+      all_categorical() ~ "{p} ({n})"
     ),
     missing = "no",) |> add_ci(
       statistic = list(
-        all_categorical() ~ "{conf.low} - {conf.high}",
-        all_continuous() ~ "{conf.low} - {conf.high}"
+        all_categorical() ~ "{conf.low} - {conf.high}"
         
       )
     ) |> modify_table_styling(
@@ -11748,7 +11763,7 @@ TableRep101 <-
         RegistryStatus ~ "Patient Record Active"
       ),
       type = list(
-        AgeAtInitialExam ~ "continuous",
+        AgeAtInitialExam ~ "continuous2",
         #SymptomDuration ~ "continuous",
         Sex ~ "dichotomous",
         TreatmentStatus ~ "dichotomous",
@@ -12065,11 +12080,15 @@ TableRep104 <- SelectRep10 |>
       SubsequentTx2 ~ "Subsequent Treatment"
       ),
     type = list(
-      ReopDelay_Surgery ~ "continuous"
+      ReopDelay_Surgery ~ "continuous2"
     ),
     statistic = list(
       all_categorical() ~ "{p} ({n})",
-      all_continuous() ~ "{mean} ({sd})"
+      all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
     ),
     missing = "no",
     digits = list(
@@ -12240,10 +12259,10 @@ dplyr::select(
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              QDASH ~ "continuous",
-              QDASHDelta ~ "continuous",
-              WOSINorm ~ "continuous",
-              WOSIDelta ~ "continuous"
+              QDASH ~ "continuous2",
+              QDASHDelta ~ "continuous2",
+              WOSINorm ~ "continuous2",
+              WOSIDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -12464,8 +12483,8 @@ TableRep11RC1 <-
         RegistryStatus ~ "Patient Record Active"
       ),
       type = list(
-        AgeAtInitialExam ~ "continuous",
-        SymptomDuration ~ "continuous",
+        AgeAtInitialExam ~ "continuous2",
+        SymptomDuration ~ "continuous2",
         Sex ~ "dichotomous",
         TreatmentStatus ~ "dichotomous",
         RegistryStatus ~ "dichotomous",
@@ -12948,13 +12967,13 @@ Rep11RCPROM1 / Rep11RCPROM2 / Rep11RCPROM3
 TableRep11RC5 <- SelectRep11RCPROM1 |>
 dplyr::select(
   QDASH,
-  #QDASHDelta,
+  QDASHDelta,
   Timepoint) |>
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              QDASH ~ "continuous"
-              #QDASHDelta ~ "continuous"
+              QDASH ~ "continuous2",
+              QDASHDelta ~ "continuous2"
             ),
             statistic = all_continuous2() ~ c(
         "{mean} ({sd})",
@@ -12979,16 +12998,21 @@ tbl_summary(by = "Timepoint",
 TableRep11RC6 <- SelectRep11RCPROM2 |>
 dplyr::select(WORCNorm,
               WORCPhysicalQ3,
-              WORCDelta,
+              # WORCDelta, insufficient sample size
               Timepoint) |>
 tbl_summary(by = "Timepoint",
             missing = "no",
             type = list(
-              WORCNorm ~ "continuous",
-              WORCPhysicalQ3 ~ "continuous",
-              WORCDelta ~ "continuous"
+              WORCNorm ~ "continuous2",
+              WORCPhysicalQ3 ~ "continuous2"
+              # WORCDelta ~ "continuous2"
             ),
-            statistic = all_continuous() ~ "{median} ({p25} - {p75})") 
+            statistic = all_continuous2() ~ c(
+        "{mean} ({sd})",
+        "{median} ({p25}, {p75})",
+        "{min} – {max}"
+      )
+      ) 
 
 
  gtsummary::as_flex_table(TableRep11RC6) |> flextable::set_table_properties(
@@ -13269,7 +13293,7 @@ Usage of the Product within the patient group is summarised below.
 
 # Product usage patterns
 
-Product usage patterns were determined by merging multiple product datasets into a single table. This combined data was then modified to include additional information and restructured to have separate columns for different product groups. Following this, a list of product category names was established and proportions for various combinations were calculated. The results were reformatted for presentation, with count data incorporated and proportions displayed as percentages. The table was written to [Attachment 1](https://docs.google.com/spreadsheets/d/1ESVvSKAv8ma11kri9pby6OEU9Gk5Z3UnF6XwjXBTcTg/edit?usp=sharing) for further analysis.
+Product usage patterns were determined by merging multiple product datasets into a single table. This combined data was then modified to include additional information and restructured to have separate columns for different product groups. Following this, a list of product category names was established and proportions for various combinations were calculated. The results were reformatted for presentation, with count data incorporated and proportions displayed as percentages. The table was written to [Attachment 1](https://docs.google.com/spreadsheets/d/1Z79F9LrotbYTf5F7pPlqpMwV8yk1K-Upy3ty7cu06UY/edit?usp=sharing) for further analysis.
 
 ```{r}
 #| label: Product-usage-summary
@@ -13412,7 +13436,7 @@ SelectRepSum <- SelectRepAll1 |>
 
 ```
 
-A cross-tabulation of usage for all products was generated and written to [Attachment 1](https://docs.google.com/spreadsheets/d/1ESVvSKAv8ma11kri9pby6OEU9Gk5Z3UnF6XwjXBTcTg/edit?usp=sharing) for further review.
+A cross-tabulation of usage for all products was generated and written to [Attachment 1](https://docs.google.com/spreadsheets/d/1Z79F9LrotbYTf5F7pPlqpMwV8yk1K-Upy3ty7cu06UY/edit?usp=sharing) for further review.
 
 ```{r}
 #| label: cross-tabulation
