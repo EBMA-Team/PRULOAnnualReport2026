@@ -1419,10 +1419,15 @@ SnapshotPROM1 <- SnapshotPROM |>
     names_pattern = "(.+)(Preop|3m|6m|12m)",
     values_to = c("QDASH", "DeltaQ", "WOSINorm", "WOSIDelta", "Eligible")
   ) |>
-  mutate(Timepoint = forcats::fct(
-    Timepoint, 
-    levels = c("Preop", "3m", "6m", "12m"))
-    ) |> dplyr::filter(!is.na(Eligible)) |> rename(
+  mutate(
+    Timepoint = forcats::fct(
+      Timepoint,
+      levels = c("Preop", "3m", "6m", "12m")),
+    Followup =  if_else(is.na(DateStatusChange),NA,as.numeric(as.duration(interval(DateTreatment, DateStatusChange)),"days"))
+    ) |> dplyr::filter_out(
+      is.na(Eligible),
+      Timepoint == "12m" & Followup < 308
+      ) |> rename(
       QDASHDelta = "DeltaQ"
     )
 
@@ -2340,9 +2345,13 @@ TableRep1RC2 <-
       missing = "no"
     ) |> add_overall() |> modify_table_styling(
       columns = label,
-      rows = label == "Other",
+      rows = label == "Other" & variable == "RepairAugmentation",
       footnote = "Biceps tendon integration; Biceps tendon transfer; Tendon advancement"
-    ) |> gtsummary::as_flex_table() |> 
+    ) |> modify_table_styling(
+    columns = label,
+    rows = variable == "CapsuleLigament" & row_type == "label",
+    footnote = "Procedures affecting the joint capsule or ligaments"
+  ) |> gtsummary::as_flex_table() |> 
   flextable::set_table_properties(
     width = 1, 
     layout = "autofit"
@@ -2978,9 +2987,13 @@ TableRep1BT2 <-
     #by = "LongHeadBiceps",
     missing = "no") |> modify_table_styling(
       columns = label,
-      rows = label == "Other",
+      rows = label == "Other" & variable = "RepairAugmentation",
       footnote = "Biceps tendon integration; Biceps tendon transfer; Tendon advancement"
-    ) 
+    ) |> modify_table_styling(
+    columns = label,
+    rows = variable == "CapsuleLigament" & row_type == "label",
+    footnote = "Procedures affecting the joint capsule or ligaments"
+  ) 
 
 gtsummary::as_flex_table(TableRep1BT2) |> flextable::set_table_properties(
   layout = "autofit",
@@ -3730,9 +3743,13 @@ TableRep2RC2 <-
       missing = "no"
     ) |> add_overall() |> modify_table_styling(
       columns = label,
-      rows = label == "Other",
+      rows = label == "Other" & variable == "RepairAugmentation",
       footnote = "Biceps tendon integration; Biceps tendon transfer; Tendon advancement"
-    ) 
+    ) |> modify_table_styling(
+    columns = label,
+    rows = variable == "CapsuleLigament" & row_type == "label",
+    footnote = "Procedures affecting the joint capsule or ligaments"
+  ) 
 
   gtsummary::as_flex_table(TableRep2RC2) |> flextable::set_table_properties(
   layout = "autofit",
@@ -4327,9 +4344,13 @@ TableRep2BT2 <-
     #by = "LongHeadBiceps",
     missing = "no") |> modify_table_styling(
       columns = label,
-      rows = label == "Other",
+      rows = label == "Other" & variable == "RepairAugmentation",
       footnote = "Biceps tendon integration; Biceps tendon transfer; Tendon advancement"
-    ) 
+    ) |> modify_table_styling(
+    columns = label,
+    rows = variable == "CapsuleLigament" & row_type == "label",
+    footnote = "Procedures affecting the joint capsule or ligaments"
+  ) 
 
 gtsummary::as_flex_table(TableRep2BT2) |> flextable::set_table_properties(
   layout = "autofit",
@@ -5047,9 +5068,13 @@ TableRep3RC2 <-
       missing = "no"
     ) |> add_overall() |> modify_table_styling(
       columns = label,
-      rows = label == "Other",
+      rows = label == "Other" & variable == "RepairAugmentation",
       footnote = "Biceps tendon integration; Biceps tendon transfer; Tendon advancement"
-    ) 
+    ) |> modify_table_styling(
+    columns = label,
+    rows = variable == "CapsuleLigament" & row_type == "label",
+    footnote = "Procedures affecting the joint capsule or ligaments"
+  ) 
 
 gtsummary::as_flex_table(TableRep3RC2) |> flextable::set_table_properties(
   layout = "autofit",
@@ -5628,9 +5653,13 @@ TableRep3BT2 <-
     #by = "LongHeadBiceps",
     missing = "no") |> modify_table_styling(
       columns = label,
-      rows = label == "Other",
+      rows = label == "Other" & variable == "LabrumRepair",
       footnote = "Biceps tendon integration; Biceps tendon transfer; Tendon advancement"
-    )
+    ) |> modify_table_styling(
+    columns = label,
+    rows = variable == "CapsuleLigament" & row_type == "label",
+    footnote = "Procedures affecting the joint capsule or ligaments"
+  ) 
   
  gtsummary::as_flex_table(TableRep3BT2) |> flextable::set_table_properties(
    layout = "autofit",
@@ -6341,9 +6370,13 @@ TableRep4RC2 <-
       missing = "no"
     ) |> add_overall() |> modify_table_styling(
       columns = label,
-      rows = label == "Other",
+      rows = label == "Other" & variable == "LabrumRepair",
       footnote = "Biceps tendon integration; Biceps tendon transfer; Tendon advancement"
-    ) 
+    ) |> modify_table_styling(
+    columns = label,
+    rows = variable == "CapsuleLigament" & row_type == "label",
+    footnote = "Procedures affecting the joint capsule or ligaments"
+  ) 
 
 gtsummary::as_flex_table(TableRep4RC2) |> flextable::set_table_properties(
   layout = "autofit",
@@ -6920,9 +6953,13 @@ TableRep4BT2 <-
     #by = "LongHeadBiceps",
     missing = "no") |> modify_table_styling(
       columns = label,
-      rows = label == "Other",
+      rows = label == "Other" & variable == "LabrumRepair",
       footnote = "Biceps tendon integration; Biceps tendon transfer; Tendon advancement"
-    ) 
+    ) |> modify_table_styling(
+    columns = label,
+    rows = variable == "CapsuleLigament" & row_type == "label",
+    footnote = "Procedures affecting the joint capsule or ligaments"
+  ) 
 
 gtsummary::as_flex_table(TableRep4BT2) |> flextable::set_table_properties(
   layout = "autofit",
@@ -7639,9 +7676,17 @@ TableRep5RC2 <-
       missing = "no"
     ) |> add_overall() |> modify_table_styling(
       columns = label,
-      rows = label == "Other",
+      rows = label == "Other" & variable == "RepairAugmentation",
       footnote = "Biceps tendon integration; Biceps tendon transfer; Tendon advancement"
-    ) 
+    ) |> modify_table_styling(
+      columns = label,
+      rows = label == "Other" & variable == "CapsuleLigament",
+      footnote = "Procedure not involving a repair (e.g. capsulotomy)"
+    ) |> modify_table_styling(
+    columns = label,
+    rows = variable == "CapsuleLigament" & row_type == "label",
+    footnote = "Procedures affecting the joint capsule or ligaments"
+  ) 
 
 gtsummary::as_flex_table(TableRep5RC2) |> flextable::set_table_properties(
   layout = "autofit",
@@ -8221,9 +8266,18 @@ TableRep5BT2 <-
     #by = "LongHeadBiceps",
     missing = "no") |> modify_table_styling(
       columns = label,
-      rows = label == "Other",
+      rows = label == "Other"& variable == "RepairAugmentation",
       footnote = "Biceps tendon integration; Biceps tendon transfer; Tendon advancement"
-    ) 
+    ) |>
+  modify_table_styling(
+    columns = label,
+    rows = variable == "CapsuleLigament" & row_type == "label",
+    footnote = "Procedures affecting the joint capsule or ligaments"
+  ) |> modify_table_styling(
+      columns = label,
+      rows = label == "Other" & variable == "CapsuleLigament",
+      footnote = "Procedure not involving a repair (e.g. capsulotomy)"
+    )
 
 gtsummary::as_flex_table(TableRep5BT2) |> flextable::set_table_properties(
   layout = "autofit",
@@ -9462,8 +9516,17 @@ TableRep6BR2 <-
     ) |> modify_table_styling(
       columns = label,
       rows = label == "Other",
-      footnote = "Labral tear uncategorised"
-    ) 
+      footnote = "Procedure other than repair (e.g. capsulotomy)"
+    ) |>
+  modify_table_styling(
+    columns = label,
+    rows = variable == "CapsuleLigament" & row_type == "label",
+    footnote = "Procedures affecting the joint capsule or ligaments"
+  ) |> modify_table_styling(
+      columns = label,
+      rows = label == "Other" & variable == "CapsuleLigament",
+      footnote = "Procedure not involving a repair (e.g. capsulotomy)"
+    )
 
 gtsummary::as_flex_table(TableRep6BR2) |> flextable::set_table_properties(
   layout = "autofit",
@@ -10142,9 +10205,18 @@ TableRep72 <-
       missing = "no"
     ) |> modify_table_styling(
       columns = label,
-      rows = label == "Other",
+      rows = label == "Other" & variable == "LabrumRepair",
       footnote = "Labral tear uncategorised"
-    ) 
+    ) |>
+  modify_table_styling(
+    columns = label,
+    rows = variable == "CapsuleLigament" & row_type == "label",
+    footnote = "Procedures affecting the joint capsule or ligaments"
+  ) |> modify_table_styling(
+      columns = label,
+      rows = label == "Other" & variable == "CapsuleLigament",
+      footnote = "Procedure not involving a repair (e.g. capsulotomy)"
+    )
 
 gtsummary::as_flex_table(TableRep72) |> flextable::set_table_properties(
   layout = "autofit",
@@ -10679,9 +10751,14 @@ TableRep7BR2 <-
       missing = "no"
     ) |> modify_table_styling(
       columns = label,
-      rows = label == "Other",
+      rows = label == "Other" & variable == "LabrumRepair",
       footnote = "Labral tear uncategorised"
-    ) 
+    ) |>
+  modify_table_styling(
+    columns = label,
+    rows = label == "Capsule | Ligament",
+    footnote = "Procedures affecting the joint capsule or ligaments"
+  ) 
 
 gtsummary::as_flex_table(TableRep7BR2) |> flextable::set_table_properties(
   layout = "autofit",
@@ -11432,7 +11509,7 @@ Postoperative complications were recoded from report text where definitions were
 
 ```{r}
 #| label: tbl-TableRep-PC-9
-#| tbl-cap: "Summary of PRULO Report 4 (Rotator Cuff) Cases - Postoperative Events"
+#| tbl-cap: "Summary of PRULO Report 9 (All) Cases - Postoperative Events"
 
 # Now create the summary table
 TableRep_PC9 <- SelectRep9 |>
@@ -11853,9 +11930,14 @@ TableRep102 <-
       missing = "no"
     ) |> modify_table_styling(
       columns = label,
-      rows = label == "Other",
+      rows = label == "Other" & variable == "LabrumRepair",
       footnote = "Labral tear uncategorised"
-    ) 
+    ) |>
+  modify_table_styling(
+    columns = label,
+    rows = label == "CapsuleLigament",
+    footnote = "Procedures affecting the joint capsule or ligaments"
+  ) 
 
 gtsummary::as_flex_table(TableRep102) |> flextable::set_table_properties(
     layout = "autofit",
