@@ -2987,7 +2987,7 @@ TableRep1BT2 <-
     #by = "LongHeadBiceps",
     missing = "no") |> modify_table_styling(
       columns = label,
-      rows = label == "Other" & variable = "RepairAugmentation",
+      rows = label == "Other" & variable == "RepairAugmentation",
       footnote = "Biceps tendon integration; Biceps tendon transfer; Tendon advancement"
     ) |> modify_table_styling(
     columns = label,
