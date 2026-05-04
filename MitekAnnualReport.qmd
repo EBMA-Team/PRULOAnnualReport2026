@@ -200,29 +200,29 @@ base_folder_id1 <- "1og1hWKEXFcy8v8pLSzA_Ii767bbCe_EK"
 
 get_specific_snapshot <- function(folder_name, base_folder_id = base_folder_id1) {
   tryCatch({
-    # Check if the folder exists in the base directory
-    folder <- googledrive::drive_ls(as_id(base_folder_id), pattern = paste0("^", folder_name, "$"))
-    
-    if(nrow(folder) == 0) {
+    folder <- googledrive::drive_ls(
+      path = googledrive::as_id(base_folder_id),
+      q = paste0("name = '", folder_name, "' and trashed = false")
+    )
+
+    if (nrow(folder) == 0) {
       stop(paste("Folder", folder_name, "not found"))
     }
-    
-    # Find the snapshot file in the specified folder
+
     snapshot_file <- googledrive::drive_ls(
-      folder$id, 
-      pattern = "Registry data snapshot\\.xlsx$"
+      path = googledrive::as_id(folder$id[1]),
+      q = "name = 'Registry data snapshot.xlsx' and trashed = false"
     )
-    
-    if(nrow(snapshot_file) == 0) {
+
+    if (nrow(snapshot_file) == 0) {
       stop("No snapshot file found in specified folder")
     }
-    
-    # Return both pieces of information as a list
+
     return(list(
-      snapshot = snapshot_file,
-      folder_name = folder$name
+      snapshot = snapshot_file[1, ],
+      folder_name = folder$name[1]
     ))
-    
+
   }, error = function(e) {
     stop(paste("Error finding specified snapshot:", e$message))
   })
@@ -453,6 +453,7 @@ specific_snapshot <- get_specific_snapshot("20260331")
 ```
 
 ```{r}
+
 temp_file1 <- tempfile(fileext = ".xlsx")
 drive_download(
   file = specific_snapshot$snapshot$id,
