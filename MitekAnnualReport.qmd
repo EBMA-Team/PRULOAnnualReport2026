@@ -1460,6 +1460,47 @@ SnapshotPROM2 <- SnapshotPROM |>
 Adverse events were monitored by near real-time chart review and surgical bookings. Events were added to the registry using an electronic form and linked to the treatment records. The data import was assessed for data entry validity, differences between date of event, date of reoperation and surgery date of the index treatment were calculated to assess date validity. Additional data preparation and cleaning was performed, which included filtering and standardizing key identifiers across multiple datasets. Missing values were identified to ensure data consistency. The adverse events were attached to the treatment data with filters applied to constrain to pertinent records and time periods. Time-based metrics were calculated and classification was performed based on the event descriptions using regular expressions. Finally, it conducted data quality checks, identifying potential discrepancies and duplicate entries. After the data transformation, the revised dataset was exported to an external file for review. The code then generated multiple subset datasets, each focusing on a specific type of complication and isolating the earliest occurrence for each unique treatment. This was used for retrieval for each product report.
 
 ```{r}
+#| label: tbl-ae-criteria
+#| tbl-cap: "Adverse event classification criteria applied to free-text complication descriptions"
+
+tibble::tibble(
+  Category = c(
+    "Infection",
+    "Ligament / Tendon",
+    "Stiffness",
+    "Loosening",
+    "Hardware",
+    "Instability",
+    "Neurological",
+    "Fracture",
+    "Wound",
+    "Thrombosis",
+    "Effusion",
+    "Pain",
+    "Other"
+  ),
+  `Classifying Terms` = c(
+    "washout, infect, antibiotic, VAC dressing, culture",
+    "fail, recurrent, rupture, retear, torn, weak, weakness, tear",
+    "capsulitis, frozen, stiff, release, arthrofibrosis",
+    "regraft, loosening (excluding loose bodies), pullout",
+    "removal, irritation, explant, broken, annoying, device, replacement",
+    "instability, subluxation, dislocation",
+    "palsy, radiculopathy, carpal tunnel",
+    "fracture",
+    "wound, necrosis",
+    "DVT, embolism, PE, occlusion",
+    "swelling, edema, oedema, effusion, swollen",
+    "pain, complex regional pain syndrome (CRPS)",
+    "Any complication not meeting criteria for any named category above"
+  )
+) |>
+  knitr::kable(align = c("l", "l"))
+```
+
+A complication was flagged as **Other** when no named category criteria were met. A secondary flag, **Isolated Pain**, was assigned where **Pain** was the sole category identified --- distinguishing pain as a primary presenting complication from cases where pain co-occurred alongside another classified event.
+
+```{r}
 #| label:  complications-intraop
 # Slice out intraoperative complications (explants)
 # 
@@ -3544,14 +3585,22 @@ SelectRep2 <- SnapshotComb4 |>
 ```{r}
 #| label: PROMs-Rep2
 
+# There are some rogue records with PROMs captured for the same record after the datestatus change (failed etc). These are removed manually
+
 SelectRep2PROM1 <- SnapshotPROM1 |>
   dplyr::filter(
-    str_detect(ImplantCodes,paste(RefCode2$Reference,collapse = "|"))
+    str_detect(ImplantCodes,paste(RefCode2$Reference,collapse = "|")),
+    !(TreatmentID == "17.1"),
+    !(TreatmentID == "281.1" & Timepoint == "12m"),
+    !(TreatmentID == "816.2" & Timepoint == "12m")
   )
 
 SelectRep2PROM2 <- SnapshotPROM2 |>
   dplyr::filter(
-    str_detect(ImplantCodes,paste(RefCode2$Reference,collapse = "|"))
+    str_detect(ImplantCodes,paste(RefCode2$Reference,collapse = "|")),
+    !(TreatmentID == "17.1"),
+    !(TreatmentID == "281.1" & Timepoint == "12m"),
+    !(TreatmentID == "816.2" & Timepoint == "12m")
   )
 
 ```
@@ -4123,7 +4172,7 @@ if (knitr::is_html_output()) {
 }
 ```
 
-### Patient-Reported Outcomes
+colnames(### Patient-Reported Outcomes
 
 Complete case analysis of QDASH, WORC Index Normalised, and WORC Physical Question 3 (How much weakness do you experience in your shoulder?) is summarised below.
 
