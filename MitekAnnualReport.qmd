@@ -9,7 +9,7 @@ type: "website"
 number-sections: true
 number-depth: 3
 date: "2026-Apr-07"
-date-modified: "2026-Apr-16"
+date-modified: "2026-May-05"
 bibliography: MitekReport references.bib
 format: 
   html:
@@ -1950,6 +1950,11 @@ TableRepB <-
         RegistryStatus = "Open"
       ),
       statistic = list(
+        all_continuous2() ~ c(
+          "{mean} ({sd})",
+          "{median} ({p25}, {p75})",
+          "{min} – {max}"
+        ),
         all_categorical() ~ "{p} ({n})"
         ),
       missing = "no"
@@ -1979,93 +1984,7 @@ gtsummary::as_flex_table(TableRepB) |> flextable::set_table_properties(
 
 ```
 
-```{r}
-#| label: tbl-surgical2
-#| tbl-cap: "Summary of PRULO surgical cases by cohort - test with continuous variable display"
 
-TableRepB1 <-
-  SnapshotComb4 |> mutate(
-    SurgeonA = case_when(
-    Surgeon == "KE" ~ "A",
-    Surgeon == "RP" ~ "B",
-    Surgeon == "GB" ~ "C",
-    .default = NA_character_
-  )) |>
-  dplyr::filter(SurgicalTreatment == "Surgical" &
-          !grepl("Pending",TreatmentStatus)) |>
-  dplyr::select(
-    AgeAtInitialExam, 
-    Sex,
-    Cohort,
-    IndexSide,
-    BilateralStatus,
-    SymptomDuration,
-    SymptomDurationCat,
-    #SurgeonA,
-    TreatmentStatus,
-    RegistryStatus
-    ) |>
-    tbl_summary(
-      by = "Cohort",
-      label = list(
-        #SurgeonA ~ "Surgeon",
-        AgeAtInitialExam ~ "Age at Initial Consultation (Years)",
-        Sex = "Male",
-        BilateralStatus ~ "Bilateral Presentation",
-        IndexSide ~ "Dominant Side",
-        SymptomDuration ~ "Symptom Duration (Weeks)",
-        SymptomDurationCat ~ "Symptom Duration Category",
-        TreatmentStatus ~ "Treatment Record Active",
-        RegistryStatus ~ "Patient Record Active"
-      ),
-      type = list(
-        AgeAtInitialExam ~ "continuous2",
-        SymptomDuration ~ "continuous2",
-        Sex ~ "dichotomous",
-        TreatmentStatus ~ "dichotomous",
-        RegistryStatus ~ "dichotomous"
-      ),
-      value = list(
-        Sex = "Male",
-        IndexSide = "Dominant",
-        TreatmentStatus = "Ongoing",
-        RegistryStatus = "Open"
-      ),
-      statistic = list(
-        all_continuous2() ~ c(
-          "{mean} ({sd})",
-          "{median} ({p25}, {p75})",
-          "{min} – {max}"
-        ),
-        all_categorical() ~ "{p} ({n})"
-        ),
-      missing = "no"
-    ) |> add_stat_label(
-    location = "column"
-  ) |> add_overall() |> modify_table_styling(
-      columns = label,
-      rows = label == "Symptom Duration Category",
-      footnote = "Dichotomised below or equal to 0.5 years or greater than 0.5 years"
-  ) |> modify_table_styling(
-      columns = label,
-      rows = label == "Treatment Record Active",
-      footnote = "Treatment record remains active - no change to follow up"
-  ) |> modify_table_styling(
-      columns = label,
-      rows = label == "Patient Record Active",
-      footnote = "Patient record remains open - no change to consent or mortality status"
-  )
-  
-  gtsummary::as_flex_table(TableRepB1) |> flextable::set_table_properties(
-  layout = "autofit",
-  align = "center",
-  opts_word = list(
-    split = TRUE
-    )
-  ) |> flextable::autofit(add_w = 0, add_h = 0) |>
-  flextable::fontsize(size = 12, part = "all")
-
-```
 
 <!--# Removed SymptomDurationCat - turning it into a factor was problematic when constructing the summary table with gtsummary-->
 
