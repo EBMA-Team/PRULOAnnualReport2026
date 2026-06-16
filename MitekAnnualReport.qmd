@@ -3143,7 +3143,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep1BT$TreatmentID) |> 
     rename(
-      Description = "",
+      Description = "ICNature4",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -5182,7 +5182,6 @@ has_complications <- SelectRep3RC |>
 
 if (!has_complications) {
   cat("No intraoperative complications observed.")
-  knitr::knit_exit()
 } else {
   total_cases <- nrow(SelectRep3RC)
   complication_cases <- SelectRep3RC |> 
@@ -5202,9 +5201,9 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep3RC$TreatmentID) |> 
     dplyr::rename(
-      Description       = ICDescription,      # ← replace with real column name
-      Intervention      = ICIntervention,
-      PostopManagement  = ICPostopManagement
+      Description      = ICNature,
+      Intervention     = ICIntervention,
+      PostopManagement = ICPostopManagement
     ) |> 
     dplyr::select(TreatmentID, Description, Intervention, PostopManagement) |> 
     gt::gt()
@@ -5776,7 +5775,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep3BT$TreatmentID) |> 
     rename(
-      Description = "",
+      Description = "ICNature4",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -6499,7 +6498,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep4RC$TreatmentID) |> 
     rename(
-      Description = "",
+      Description = "ICNature4",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -7079,7 +7078,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep4BT$TreatmentID) |> 
     rename(
-      Description = "",
+      Description = "ICNature4",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -7810,7 +7809,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep5RC$TreatmentID) |> 
     rename(
-      Description = "",
+      Description = "ICNature4",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
@@ -8398,7 +8397,7 @@ if (!has_complications) {
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep5BT$TreatmentID) |> 
     rename(
-      Description = "",
+      Description = "ICNature4",
       Intervention = "ICIntervention",
       PostopManagement = "ICPostopManagement"
     ) |> 
