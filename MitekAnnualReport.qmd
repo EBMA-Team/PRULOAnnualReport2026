@@ -1960,15 +1960,15 @@ TableRepB <-
       missing = "no"
     ) |> add_stat_label(
     location = "column"
-  ) |> add_overall() |> modify_table_styling(
+  ) |> gtsummary::add_overall() |> gtsummary::modify_table_styling(
       columns = label,
       rows = label == "Symptom Duration Category",
       footnote = "Dichotomised below or equal to 0.5 years or greater than 0.5 years"
-  ) |> modify_table_styling(
+  ) |> gtsummary::modify_table_styling(
       columns = label,
       rows = label == "Treatment Record Active",
       footnote = "Treatment record remains active - no change to follow up"
-  ) |> modify_table_styling(
+  ) |> gtsummary::modify_table_styling(
       columns = label,
       rows = label == "Patient Record Active",
       footnote = "Patient record remains open - no change to consent or mortality status"
