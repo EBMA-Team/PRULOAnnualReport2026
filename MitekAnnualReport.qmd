@@ -5176,51 +5176,37 @@ Complications and adverse events are summarised below.
 #| label: tbl-intraop-complications-3A
 #| tbl-cap: "Summary of PRULO Report 3 (Rotator Cuff) Cases - Intraoperative Events"
 
-# Check if any complications exist in filtered data
 has_complications <- SelectRep3RC |> 
   dplyr::filter(TreatmentID %in% IntraopComp$TreatmentID) |> 
   nrow() > 0
 
-# Conditionally generate content
 if (!has_complications) {
-  # If no complications, return the text message
-  glue::glue("No intraoperative complications observed.")
+  cat("No intraoperative complications observed.")
+  knitr::knit_exit()
 } else {
-  # Calculate incidence and confidence intervals
   total_cases <- nrow(SelectRep3RC)
   complication_cases <- SelectRep3RC |> 
     dplyr::filter(TreatmentID %in% IntraopComp$TreatmentID) |> 
     nrow()
   
-  # Calculate proportion and 95% CI using Wilson method
-  prop_result <- binom::binom.confint(complication_cases, total_cases, 
-                                      methods = "wilson")
+  prop_result <- binom::binom.confint(complication_cases, total_cases, methods = "wilson")
   incidence_pct <- round(prop_result$mean * 100, 1)
-  ci_lower <- round(prop_result$lower * 100, 1)
-  ci_upper <- round(prop_result$upper * 100, 1)
+  ci_lower      <- round(prop_result$lower * 100, 1)
+  ci_upper      <- round(prop_result$upper * 100, 1)
   
-  # Generate summary sentence
-  summary_text <- glue::glue(
-    "Intraoperative events occurred in {complication_cases} of {total_cases} cases ({incidence_pct}%, 95% CI: {ci_lower}%-{ci_upper}%)."
-  )
+  cat(glue::glue(
+    "Intraoperative events occurred in {complication_cases} of {total_cases} cases ",
+    "({incidence_pct}%, 95% CI: {ci_lower}%\u2013{ci_upper}%).\n\n"
+  ))
   
-  # Print summary sentence
-  cat(summary_text, "\n\n")
-  
-  # Generate and return the table
   IntraopComp |> 
     dplyr::filter(TreatmentID %in% SelectRep3RC$TreatmentID) |> 
-    rename(
-      Description = "",
-      Intervention = "ICIntervention",
-      PostopManagement = "ICPostopManagement"
+    dplyr::rename(
+      Description       = ICDescription,      # ← replace with real column name
+      Intervention      = ICIntervention,
+      PostopManagement  = ICPostopManagement
     ) |> 
-    select(
-      TreatmentID,
-      Description,
-      Intervention,
-      PostopManagement
-    ) |> 
+    dplyr::select(TreatmentID, Description, Intervention, PostopManagement) |> 
     gt::gt()
 }
 
