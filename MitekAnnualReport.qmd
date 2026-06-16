@@ -447,7 +447,7 @@ TargetTerms2 <- googlesheets4::range_read(
 gs4_auth(token = drive_token())
 
 # To get a snapshot from a specific folder (e.g., "20230415")
-specific_snapshot <- get_specific_snapshot("202600616")
+specific_snapshot <- get_specific_snapshot("20260616")
 
 
 ```
